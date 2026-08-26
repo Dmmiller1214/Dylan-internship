@@ -5,7 +5,7 @@ const TopSellerCard = ({ seller }) => {
   return (
     <li>
       <div className="author_list_pp">
-        <Link to="/author">
+        <Link to={`/author/${seller.authorId}`}>
           <img
             className="lazy pp-author"
             src={seller.authorImage}
@@ -16,7 +16,7 @@ const TopSellerCard = ({ seller }) => {
       </div>
 
       <div className="author_list_info">
-        <Link to="/author">{seller.authorName}</Link>
+        <Link to={`/author/${seller.authorId}`}>{seller.authorName}</Link>
         <span>{Number(seller.price).toFixed(1)} ETH</span>
       </div>
     </li>

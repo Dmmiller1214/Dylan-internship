@@ -5,7 +5,7 @@ const CollectionCard = ({ collection }) => {
   return (
     <div className="nft_coll">
       <div className="nft_wrap">
-        <Link to="/item-details">
+        <Link to={`/item-details/${collection.nftId}`}>
           <img
             src={collection.nftImage}
             className="lazy img-fluid"
@@ -26,7 +26,7 @@ const CollectionCard = ({ collection }) => {
       </div>
 
       <div className="nft_coll_info">
-        <Link to="/explore">
+        <Link to={`/item-details/${collection.nftId}`}>
           <h4>{collection.title}</h4>
         </Link>
         <span>ERC-{collection.code}</span>

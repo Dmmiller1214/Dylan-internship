@@ -2,83 +2,49 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import AuthorBanner from "../images/author_banner.jpg";
 import AuthorItems from "../components/author/AuthorItems";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import AuthorImage from "../images/author_thumbnail.jpg";
 import AuthorSkeleton from "../components/author/AuthorSkeleton";
 import NewItemCard from "../components/home/NewItemCard";
 
 const Author = () => {
+  const [followerCount, setFollowerCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
   const { authorId } = useParams();
   const [author, setAuthor] = useState(null);
   const [authorItems, setAuthorItems] = useState([]);
   const [loading, setLoading] = useState(Boolean(authorId));
 
   useEffect(() => {
-    if (!authorId) {
-      return;
-    }
+    if (!authorId) return;
 
     setLoading(true);
 
-    Promise.all([
-      axios.get(
-        "https://us-central1-nft-cloud-functions.cloudfunctions.net/topSellers",
-      ),
-      axios.get(
-        "https://us-central1-nft-cloud-functions.cloudfunctions.net/newItems",
-      ),
-      axios.get(
-        "https://us-central1-nft-cloud-functions.cloudfunctions.net/hotCollections",
-      ),
-    ])
-      .then(async ([sellersResponse, itemsResponse, collectionsResponse]) => {
-        const selectedAuthor = sellersResponse.data.find(
-          (seller) => String(seller.authorId) === authorId,
+    axios
+      .get(
+        "https://us-central1-nft-cloud-functions.cloudfunctions.net/authors",
+        {
+          params: {
+            author: authorId,
+          },
+        },
+      )
+      .then((response) => {
+        setAuthor(response.data);
+        setFollowerCount(response.data.followers);
+        setIsFollowing(false);
+        setAuthorItems(
+          (response.data.nftCollection || []).map((item) => ({
+            ...item,
+            authorId: response.data.authorId,
+            authorImage: response.data.authorImage,
+          })),
         );
-
-        const matchingNewItems = itemsResponse.data.filter(
-          (item) => String(item.authorId) === authorId,
-        );
-
-        const matchingCollections = collectionsResponse.data.filter(
-          (collection) => String(collection.authorId) === authorId,
-        );
-
-        const collectionItems = await Promise.all(
-          matchingCollections.map(async (collection) => {
-            const detailsResponse = await axios.get(
-              "https://us-central1-nft-cloud-functions.cloudfunctions.net/itemDetails",
-              {
-                params: {
-                  nftId: collection.nftId,
-                },
-              },
-            );
-
-            return {
-              ...detailsResponse.data,
-              id: `collection-${collection.id}`,
-              authorId: collection.authorId,
-              authorImage: collection.authorImage,
-              nftId: collection.nftId,
-              nftImage: collection.nftImage,
-              title: collection.title,
-              expiryDate: null,
-            };
-          }),
-        );
-
-        const allItems = [...matchingNewItems, ...collectionItems].filter(
-          (item, index, items) =>
-            index ===
-            items.findIndex((candidate) => candidate.nftId === item.nftId),
-        );
-
-        setAuthor(selectedAuthor || null);
-        setAuthorItems(allItems);
       })
       .catch((error) => {
         console.error("Unable to load author:", error);
+        setAuthor(null);
+        setAuthorItems([]);
       })
       .finally(() => {
         setLoading(false);
@@ -125,20 +91,16 @@ const Author = () => {
                         <h4>
                           {author?.authorName || "Monica Lucas"}
                           <span className="profile_username">
-                            {author
-                              ? `Top seller · ${Number(author.price).toFixed(1)} ETH`
-                              : "@monicaaaa"}
+                            @{author?.tag || "monicaaaa"}
                           </span>
-                          {!author && (
-                            <>
-                              <span id="wallet" className="profile_wallet">
-                                UDHUHWudhwd78wdt7edb32uidbwyuidhg7wUHIFUHWewiqdj87dy7
-                              </span>
-                              <button id="btn_copy" title="Copy Text">
-                                Copy
-                              </button>
-                            </>
-                          )}
+                          <span id="wallet" className="profile_wallet">
+                            {author?.address ||
+                              "UDHUHWudhwd78wdt7edb32uidbwyuidhg7wUHIFUHWewiqdj87dy7"}
+                          </span>
+
+                          <button id="btn_copy" title="Copy Text">
+                            Copy
+                          </button>
                         </h4>
                       </div>
                     </div>
@@ -146,11 +108,19 @@ const Author = () => {
                   <div className="profile_follow de-flex">
                     <div className="de-flex-col">
                       <div className="profile_follower">
-                        {author ? "Top Seller" : "573 followers"}
+                        {`${followerCount} followers`}
                       </div>
-                      <Link to="#" className="btn-main">
-                        Follow
-                      </Link>
+                      <button
+                        className="btn-main"
+                        onClick={() => {
+                          setFollowerCount(
+                            (count) => count + (isFollowing ? -1 : 1),
+                          );
+                          setIsFollowing((following) => !following);
+                        }}
+                      >
+                        {isFollowing ? "Following" : "Follow"}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -172,7 +142,7 @@ const Author = () => {
                           ))
                         ) : (
                           <div className="col-md-12">
-                          <p>No items were found for this author.</p>
+                            <p>No items were found for this author.</p>
                           </div>
                         )}
                       </div>

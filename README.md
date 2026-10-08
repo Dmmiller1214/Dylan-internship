@@ -44,14 +44,13 @@ Prices, countdowns, likes, and author information are sample display content.
 
 ## Run Locally
 
-The current source copy is missing the `App` module imported by `src/index.js`. Restore the application's root component and route configuration before running it.
-
-Once the complete source is available:
+Clone the repository:
 
 ```bash
+git clone https://github.com/Dmmiller1214/Dylan-internship.git
+cd Dylan-internship
 npm ci
 npm start
-```
 
 Open [http://localhost:3000](http://localhost:3000).
 

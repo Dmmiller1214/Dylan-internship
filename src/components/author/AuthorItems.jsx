@@ -71,7 +71,7 @@ const AuthorItems = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            
           ))}
         </div>
       </div>
